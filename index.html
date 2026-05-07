@@ -327,7 +327,12 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = '⏳ Đang xác minh...'
   errEl.textContent = ''
   try {
-    const r = await apiCall('verify', { key })
+    errEl.textContent = '🔄 Đang gọi server...'
+    userKey = key // Set tạm để apiCall dùng
+    console.log('[PWA] calling verify for key:', key)
+    const r = await apiCall('verify', {})
+    console.log('[PWA] verify result:', JSON.stringify(r))
+    errEl.textContent = 'Kết quả: ' + JSON.stringify(r).slice(0, 100)
     if (r.ok) {
       userKey = key
       setSaved(LIC_KEY, { key, ...r, saved_at: Date.now() })
