@@ -277,52 +277,30 @@ function setSaved(k,v)   { localStorage.setItem(k, JSON.stringify(v)) }
 
 // ── API CALL ──
 async function apiCall(action, body = null) {
-  return new Promise((resolve) => {
-    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2)
+  // Dùng fetch với mode cors - Apps Script hỗ trợ nếu deploy đúng
+  const url = APPS_URL
+  const payload = {
+    action,
+    secret: APPS_SECRET,
+    key: userKey || '',
+    ...(body || {})
+  }
 
-    // Build URL thủ công - không dùng URLSearchParams để tránh encoding issues
-    let url = APPS_URL
-    url += '?action='    + encodeURIComponent(action)
-    url += '&secret='   + encodeURIComponent(APPS_SECRET)
-    url += '&key='      + encodeURIComponent(userKey || '')
-    url += '&callback=' + cbName
-
-    // Thêm các params phụ nếu có
-    if (body && typeof body === 'object') {
-      Object.entries(body).forEach(([k, v]) => {
-        if (k !== 'data') url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(v)
-      })
-      if (body.data) url += '&data_json=' + encodeURIComponent(JSON.stringify(body.data))
-    }
-
-    console.log('[PWA] JSONP:', action, url.slice(0, 150))
-
-    window[cbName] = (data) => {
-      delete window[cbName]
-      script.remove()
-      clearTimeout(timer)
-      resolve(data)
-    }
-
-    const script = document.createElement('script')
-    script.src = url
-    script.onerror = () => {
-      console.error('[PWA] onerror for action:', action)
-      delete window[cbName]
-      script.remove()
-      clearTimeout(timer)
-      resolve({ error: 'Script load failed' })
-    }
-
-    const timer = setTimeout(() => {
-      console.error('[PWA] timeout for action:', action)
-      delete window[cbName]
-      if (script.parentNode) script.remove()
-      resolve({ error: 'Timeout 15s' })
-    }, 15000)
-
-    document.head.appendChild(script)
-  })
+  // Thử fetch trực tiếp với Content-Type text/plain (không trigger preflight)
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+    })
+    const text = await res.text()
+    console.log('[PWA] response:', text.slice(0, 100))
+    try { return JSON.parse(text) }
+    catch(e) { return { error: 'Parse error: ' + text.slice(0, 50) } }
+  } catch(e) {
+    console.error('[PWA] fetch error:', e.message)
+    return { error: e.message }
+  }
 }
 
 // ── AUTH ──
