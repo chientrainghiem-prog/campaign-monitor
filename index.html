@@ -296,15 +296,19 @@ async function apiCall(action, body = null) {
     window[cbName] = (data) => {
       delete window[cbName]
       script.remove()
+      clearTimeout(timer)
       resolve(data)
     }
 
     const script = document.createElement('script')
-    script.src = `${APPS_URL}?${params.toString()}`
-    script.onerror = () => {
+    const fullUrl = `${APPS_URL}?${params.toString()}`
+    console.log('[PWA] JSONP url:', fullUrl.slice(0, 120))
+    script.src = fullUrl
+    script.onerror = (err) => {
+      console.error('[PWA] script.onerror:', err)
       delete window[cbName]
       script.remove()
-      resolve({ error: 'Lỗi kết nối' })
+      resolve({ error: 'Script load failed - kiểm tra Apps Script deployment' })
     }
     // Timeout 15s
     const timer = setTimeout(() => {
