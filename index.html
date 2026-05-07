@@ -327,12 +327,8 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = '⏳ Đang xác minh...'
   errEl.textContent = ''
   try {
-    errEl.textContent = '🔄 Đang gọi server...'
-    userKey = key // Set tạm để apiCall dùng
-    console.log('[PWA] calling verify for key:', key)
+    userKey = key
     const r = await apiCall('verify', {})
-    console.log('[PWA] verify result:', JSON.stringify(r))
-    errEl.textContent = 'Kết quả: ' + JSON.stringify(r).slice(0, 100)
     if (r.ok) {
       userKey = key
       setSaved(LIC_KEY, { key, ...r, saved_at: Date.now() })
@@ -529,7 +525,7 @@ function renderReport() {
         <div><div class="report-metric-label">Lượt mua</div><div class="report-metric-val" style="color:var(--blue)">${result>0?Math.round(result):'—'}</div></div>
         <div><div class="report-metric-label">CPA / Max</div><div class="report-metric-val" style="color:${ok===false?'var(--red)':ok?'var(--grn)':'var(--ylw)'}">${fmt(cpaAct)} / ${fmt(cpaMax)}</div></div>
         <div><div class="report-metric-label">ROAS</div><div class="report-metric-val" style="color:${roas>=1?'var(--grn)':'var(--red)'}">${fmtR(roas)}</div></div>
-        <div><div class="report-metric-label">${profit>0?'💰 Lãi':'🔴 Lỗ'}</div><div class="report-metric-val" style="color:${profit>0?'var(--grn)':'var(--red)';font-weight:800}">${profit>0?'+'+fmt(profit):'−'+fmt(Math.abs(profit))}</div></div>
+        <div><div class="report-metric-label">${profit>0?'💰 Lãi':'🔴 Lỗ'}</div><div class="report-metric-val" style="color:${profit>0?'var(--grn)':'var(--red)'};font-weight:800">${profit>0?'+'+fmt(profit):'−'+fmt(Math.abs(profit))}</div></div>
       </div>
     </div>`
   })
