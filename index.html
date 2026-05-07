@@ -277,15 +277,31 @@ function setSaved(k,v)   { localStorage.setItem(k, JSON.stringify(v)) }
 
 // ── API CALL ──
 async function apiCall(action, body = null) {
-  const payload = { action, secret: APPS_SECRET, key: userKey, ...(body||{}) }
-  const res = await fetch(APPS_URL, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-    headers: { 'Content-Type': 'application/json' },
-    redirect: 'follow'
-  })
-  const text = await res.text()
-  try { return JSON.parse(text) } catch(e) { return { error: 'Phản hồi không hợp lệ' } }
+  try {
+    // Dùng GET params để tránh CORS preflight
+    const params = new URLSearchParams({
+      action,
+      secret: APPS_SECRET,
+      key: userKey || '',
+      ...(body || {})
+    })
+    // Với data lớn (push_campaigns) dùng POST, còn lại dùng GET
+    let res
+    if (action === 'push_campaigns' || (body && body.data && Array.isArray(body.data))) {
+      res = await fetch(APPS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action, secret: APPS_SECRET, key: userKey, ...(body||{}) }),
+        headers: { 'Content-Type': 'text/plain' }, // text/plain không trigger preflight
+        redirect: 'follow'
+      })
+    } else {
+      res = await fetch(`${APPS_URL}?${params.toString()}`, { redirect: 'follow' })
+    }
+    const text = await res.text()
+    try { return JSON.parse(text) } catch(e) { return { error: 'Phản hồi không hợp lệ: ' + text.slice(0,50) } }
+  } catch(e) {
+    return { error: e.message }
+  }
 }
 
 // ── AUTH ──
