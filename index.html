@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0d14">
+<title>Campaign Monitor - CHIDU VN</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a0d14;--s1:#0f1520;--s2:#141d2e;--s3:#1a2438;--bd:#1e2d44;
+  --blue:#3b82f6;--grn:#00d4a0;--red:#ff4560;--ylw:#f59e0b;--pur:#8b5cf6;--org:#f97316;
+  --txt:#e2e8f0;--mut:#4a5568;--dim:#2d3748;
+  --font:'Be Vietnam Pro',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:12px;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--txt);
+  display:flex;flex-direction:column;
+}
+
+/* ── AUTH SCREEN ── */
+.auth{
+  position:fixed;inset:0;background:var(--bg);z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.auth-logo{
+  width:72px;height:72px;background:linear-gradient(135deg,var(--blue),var(--pur));
+  border-radius:20px;display:flex;align-items:center;justify-content:center;
+  font-size:32px;margin-bottom:20px;box-shadow:0 8px 32px rgba(59,130,246,.4);
+}
+.auth h1{font-size:22px;font-weight:700;margin-bottom:6px;text-align:center;}
+.auth p{font-size:13px;color:var(--mut);margin-bottom:32px;text-align:center;line-height:1.6;}
+.auth-input{
+  width:100%;max-width:320px;background:var(--s2);border:2px solid var(--bd);
+  border-radius:var(--r);padding:14px 16px;font-size:15px;color:var(--txt);
+  font-family:var(--mono);text-align:center;letter-spacing:3px;text-transform:uppercase;
+  outline:none;transition:border .2s;margin-bottom:12px;
+}
+.auth-input:focus{border-color:var(--blue);}
+.auth-input::placeholder{letter-spacing:0;text-transform:none;font-family:var(--font);font-size:13px;color:var(--mut);}
+.auth-btn{
+  width:100%;max-width:320px;background:var(--blue);border:none;border-radius:var(--r);
+  padding:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;
+  font-family:var(--font);transition:all .2s;
+}
+.auth-btn:active{transform:scale(.97);}
+.auth-btn:disabled{opacity:.5;}
+.auth-err{font-size:12px;color:var(--red);margin-top:10px;min-height:16px;text-align:center;}
+.auth-brand{position:absolute;bottom:24px;font-size:11px;color:var(--mut);text-align:center;}
+
+/* ── TOP BAR ── */
+.topbar{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;
+  padding-top:calc(12px + env(safe-area-inset-top));
+}
+.topbar-logo{
+  width:32px;height:32px;background:linear-gradient(135deg,var(--blue),var(--pur));
+  border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+}
+.topbar-title{font-size:14px;font-weight:700;flex:1;}
+.topbar-sub{font-size:10px;color:var(--mut);}
+.sync-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--mut);flex-shrink:0;
+  transition:all .3s;
+}
+.sync-dot.live{background:var(--grn);box-shadow:0 0 6px var(--grn);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.topbar-btn{
+  background:var(--s3);border:1px solid var(--bd);border-radius:8px;
+  padding:6px 10px;font-size:11px;font-weight:600;color:var(--mut);
+  cursor:pointer;font-family:var(--font);white-space:nowrap;
+}
+.topbar-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* ── STATS BAR ── */
+.stats{
+  display:flex;gap:8px;padding:10px 12px;overflow-x:auto;flex-shrink:0;
+  background:var(--s1);border-bottom:1px solid var(--bd);
+  scrollbar-width:none;
+}
+.stats::-webkit-scrollbar{display:none;}
+.stat{
+  flex-shrink:0;background:var(--s2);border:1px solid var(--bd);border-radius:10px;
+  padding:8px 12px;min-width:90px;text-align:center;
+}
+.stat-val{font-size:14px;font-weight:700;line-height:1.3;}
+.stat-lbl{font-size:9px;color:var(--mut);margin-top:2px;text-transform:uppercase;letter-spacing:.4px;}
+
+/* ── TAB NAV ── */
+.tabnav{
+  display:flex;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;
+  overflow-x:auto;scrollbar-width:none;
+}
+.tabnav::-webkit-scrollbar{display:none;}
+.tabnav-btn{
+  flex-shrink:0;padding:10px 16px;font-size:12px;font-weight:500;color:var(--mut);
+  cursor:pointer;border:none;background:transparent;font-family:var(--font);
+  border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;
+}
+.tabnav-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom));}
+
+/* ── CAMPAIGN CARDS ── */
+.camp-card{
+  background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);
+  padding:12px 14px;margin-bottom:8px;transition:border .15s;
+}
+.camp-card:active{border-color:var(--blue);}
+.camp-name{font-size:13px;font-weight:600;margin-bottom:2px;line-height:1.4;}
+.camp-acc{font-size:10px;color:var(--mut);margin-bottom:8px;}
+.camp-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.camp-metric{text-align:center;}
+.camp-metric-val{font-size:13px;font-weight:700;}
+.camp-metric-lbl{font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:.3px;}
+.tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600;margin-bottom:6px;}
+.tag-ok{background:rgba(0,212,160,.12);color:var(--grn);}
+.tag-warn{background:rgba(245,158,11,.12);color:var(--ylw);}
+.tag-info{background:rgba(59,130,246,.12);color:#60a5fa;}
+.tag-err{background:rgba(255,69,96,.12);color:var(--red);}
+
+/* ── REPORT CARDS ── */
+.report-card{
+  background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);
+  overflow:hidden;margin-bottom:10px;
+}
+.report-head{
+  padding:12px 14px;border-bottom:1px solid var(--bd);background:var(--s3);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.report-title{font-size:13px;font-weight:700;}
+.report-body{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.report-metric-label{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.3px;}
+.report-metric-val{font-size:15px;font-weight:700;margin-top:2px;}
+.report-advice{
+  margin:0 14px 12px;padding:10px 12px;
+  background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.15);
+  border-radius:8px;font-size:12px;line-height:1.7;color:var(--txt);
+}
+
+/* ── CPA TABLE ── */
+.cpa-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:11px 14px;border-bottom:1px solid rgba(30,45,68,.8);font-size:13px;
+}
+.cpa-row:last-child{border-bottom:none;}
+.cpa-name{font-weight:600;}
+.cpa-val{font-size:14px;font-weight:700;color:var(--org);}
+
+/* ── EMPTY / LOADING ── */
+.empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px 20px;text-align:center;color:var(--mut);
+}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.4;}
+.empty-title{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:6px;}
+.empty-sub{font-size:12px;line-height:1.7;}
+.spinner{
+  width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--blue);
+  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SEARCH ── */
+.search-wrap{padding:0 0 10px;}
+.search-inp{
+  width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);
+  padding:10px 14px;font-size:13px;color:var(--txt);font-family:var(--font);outline:none;
+}
+.search-inp:focus{border-color:var(--blue);}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--s2);border:1px solid var(--bd);border-radius:10px;
+  padding:8px 18px;font-size:12px;font-weight:600;color:var(--txt);
+  transition:transform .25s;z-index:999;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ── FILTER BAR ── */
+.filter-bar{
+  display:flex;gap:6px;padding:0 0 10px;overflow-x:auto;scrollbar-width:none;
+}
+.filter-bar::-webkit-scrollbar{display:none;}
+.filter-chip{
+  flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;
+  border:1px solid var(--bd);background:var(--s2);color:var(--mut);cursor:pointer;
+  font-family:var(--font);transition:all .15s;
+}
+.filter-chip.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="auth" id="auth">
+  <div class="auth-logo">📊</div>
+  <h1>Campaign Monitor</h1>
+  <p>Tiện ích được phát triển bởi CHIDU VN<br>Nhập key để truy cập</p>
+  <input class="auth-input" type="text" id="auth-key" placeholder="Nhập key của bạn..." maxlength="30" autocomplete="off">
+  <button class="auth-btn" id="auth-btn">🚀 Đăng nhập</button>
+  <div class="auth-err" id="auth-err"></div>
+  <div class="auth-brand">Tiện ích được phát triển bởi CHIDU VN</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;height:100%;">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">📊</div>
+    <div style="flex:1">
+      <div class="topbar-title">Campaign Monitor</div>
+      <div class="topbar-sub" id="top-sub">Đang kết nối...</div>
+    </div>
+    <div class="sync-dot" id="sync-dot"></div>
+    <button class="topbar-btn primary" id="btn-refresh">🔄</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats" id="stats-bar">
+    <div class="stat"><div class="stat-val c-blue" id="st-count">—</div><div class="stat-lbl">Chiến dịch</div></div>
+    <div class="stat"><div class="stat-val" id="st-spend">—</div><div class="stat-lbl">Chi tiêu</div></div>
+    <div class="stat"><div class="stat-val" id="st-result" style="color:var(--grn)">—</div><div class="stat-lbl">Lượt mua</div></div>
+    <div class="stat"><div class="stat-val" id="st-cpa" style="color:var(--ylw)">—</div><div class="stat-lbl">CPA TB</div></div>
+    <div class="stat"><div class="stat-val" id="st-roas" style="color:var(--org)">—</div><div class="stat-lbl">ROAS</div></div>
+  </div>
+
+  <!-- TAB NAV -->
+  <div class="tabnav">
+    <button class="tabnav-btn active" data-tab="campaigns">📊 Chiến dịch</button>
+    <button class="tabnav-btn" data-tab="report">📈 Báo cáo</button>
+    <button class="tabnav-btn" data-tab="cpa">🎯 CPA SP</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+    <div class="empty">
+      <div class="spinner"></div>
+      <div class="empty-title">Đang tải dữ liệu...</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_URL    = 'https://script.google.com/macros/s/AKfycbxQtQtjIydolYEtDKc45M8wiGIS_9uDqTihvvwQE4uPAklB6bV2e5JQP9tJk-qEuWau/exec'
+const APPS_SECRET = 'chidu_vn_2026'
+const LIC_KEY     = 'chidu_pwa_lic'
+
+let currentTab = 'campaigns'
+let allCamps   = []
+let cpaMap     = {}
+let searchQ    = ''
+let lastSheetTs = 0
+let userKey    = ''
+
+// ── STORAGE ──
+function getSaved(k)     { try { return JSON.parse(localStorage.getItem(k)||'null') } catch(e) { return null } }
+function setSaved(k,v)   { localStorage.setItem(k, JSON.stringify(v)) }
+
+// ── API CALL ──
+async function apiCall(action, body = null) {
+  const payload = { action, secret: APPS_SECRET, key: userKey, ...(body||{}) }
+  const res = await fetch(APPS_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' },
+    redirect: 'follow'
+  })
+  const text = await res.text()
+  try { return JSON.parse(text) } catch(e) { return { error: 'Phản hồi không hợp lệ' } }
+}
+
+// ── AUTH ──
+async function doLogin() {
+  const key    = document.getElementById('auth-key').value.trim().toUpperCase()
+  const btn    = document.getElementById('auth-btn')
+  const errEl  = document.getElementById('auth-err')
+  if (!key) { errEl.textContent = 'Vui lòng nhập key'; return }
+  btn.disabled = true; btn.textContent = '⏳ Đang xác minh...'
+  errEl.textContent = ''
+  try {
+    const r = await apiCall('verify', { key })
+    if (r.ok) {
+      userKey = key
+      setSaved(LIC_KEY, { key, ...r, saved_at: Date.now() })
+      startApp()
+    } else {
+      errEl.textContent = '❌ ' + (r.error || 'Key không hợp lệ')
+      btn.disabled = false; btn.textContent = '🚀 Đăng nhập'
+    }
+  } catch(e) {
+    errEl.textContent = '❌ Lỗi kết nối: ' + e.message
+    btn.disabled = false; btn.textContent = '🚀 Đăng nhập'
+  }
+}
+
+function checkSavedLic() {
+  const lic = getSaved(LIC_KEY)
+  if (!lic || !lic.key) return false
+  if (lic.expire && new Date(lic.expire) < new Date()) { localStorage.removeItem(LIC_KEY); return false }
+  userKey = lic.key
+  return true
+}
+
+// ── APP START ──
+function startApp() {
+  document.getElementById('auth').style.display = 'none'
+  const app = document.getElementById('app')
+  app.style.display = 'flex'
+  loadData()
+  // Poll 30s
+  setInterval(checkNewData, 30000)
+}
+
+async function loadData(silent = false) {
+  if (!silent) showLoading()
+  setSyncDot('loading')
+  try {
+    const [campRes, cpaRes, prodRes] = await Promise.all([
+      apiCall('get_campaigns'),
+      apiCall('get'),
+      apiCall('get_products')
+    ])
+
+    if (campRes.ok && campRes.data?.length) {
+      allCamps   = campRes.data
+      lastSheetTs = campRes.last_ts || Date.now()
+      updateStats()
+      renderCurrentTab()
+      const meta = campRes.meta
+      document.getElementById('top-sub').textContent = meta ? `${meta.last_by} · ${meta.last_at}` : 'Dữ liệu từ Sheet'
+      setSyncDot('ok')
+      if (!silent) toast(`✅ ${allCamps.length} chiến dịch`)
+    } else {
+      if (!silent) { showEmpty('📭', 'Chưa có dữ liệu', 'Chờ máy có Ads Manager đẩy dữ liệu lên') }
+      setSyncDot('err')
+    }
+
+    if (cpaRes.ok && cpaRes.data) {
+      cpaMap = {}
+      cpaRes.data.forEach(i => { if(i.name && i.cpa_max > 0) cpaMap[i.name] = i.cpa_max })
+    }
+  } catch(e) {
+    setSyncDot('err')
+    if (!silent) showEmpty('❌', 'Lỗi kết nối', e.message)
+  }
+}
+
+async function checkNewData() {
+  try {
+    const r = await apiCall('check_push')
+    if (r.ok && r.last_pushed_ts && r.last_pushed_ts > lastSheetTs) {
+      await loadData(true)
+      toast('🔄 Dữ liệu mới vừa được cập nhật')
+    }
+  } catch(e) {}
+}
+
+// ── RENDER ──
+function renderCurrentTab() {
+  if (currentTab === 'campaigns') renderCampaigns()
+  else if (currentTab === 'report')   renderReport()
+  else if (currentTab === 'cpa')      renderCpa()
+}
+
+function renderCampaigns() {
+  const content = document.getElementById('content')
+  let filtered = allCamps.filter(c =>
+    !searchQ || c.name?.toLowerCase().includes(searchQ.toLowerCase())
+  )
+
+  if (!filtered.length) {
+    content.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Không tìm thấy</div></div>`
+    return
+  }
+
+  const fmt = (n, cur='') => {
+    if (!n) return '—'
+    const v = parseFloat(n)
+    if (isNaN(v) || v === 0) return '—'
+    return Math.round(v).toLocaleString('vi-VN') + (cur ? ' '+cur : '')
+  }
+  const fmtR = (n,d=2) => n>0 ? parseFloat(n).toFixed(d) : '—'
+
+  let html = `
+  <div class="search-wrap">
+    <input class="search-inp" id="search-inp" placeholder="🔍 Tìm chiến dịch..." value="${searchQ}">
+  </div>
+  <div class="filter-bar">
+    <div class="filter-chip active" data-filter="all">Tất cả (${filtered.length})</div>
+    <div class="filter-chip" data-filter="hi-cpa">🔴 CPA Cao</div>
+    <div class="filter-chip" data-filter="good">🟢 Tốt</div>
+  </div>`
+
+  filtered.forEach(c => {
+    const cpaMax = findCpaMax(c.name)
+    const cpaActual = c.cpa || 0
+    const isHiCpa = cpaMax > 0 ? cpaActual > cpaMax : false
+    const statusBadge = c.status === 'ACTIVE'
+      ? '<span class="tag tag-ok">🟢 Đang chạy</span>'
+      : c.status === 'LEARNING'
+        ? '<span class="tag tag-warn">🟡 Máy học</span>'
+        : `<span class="tag tag-info">${c.status||''}</span>`
+
+    html += `
+    <div class="camp-card">
+      ${statusBadge}
+      <div class="camp-name">${c.name||'—'}</div>
+      <div class="camp-acc">${c.accountName||''} · ${c.currency||''}</div>
+      <div class="camp-metrics">
+        <div class="camp-metric">
+          <div class="camp-metric-val">${fmt(c.spend)}</div>
+          <div class="camp-metric-lbl">Chi tiêu</div>
+        </div>
+        <div class="camp-metric">
+          <div class="camp-metric-val" style="color:${isHiCpa?'var(--red)':'var(--ylw)'}">${fmt(c.cpa)}</div>
+          <div class="camp-metric-lbl">CPA${cpaMax>0?' / '+fmt(cpaMax):''}</div>
+        </div>
+        <div class="camp-metric">
+          <div class="camp-metric-val" style="color:var(--grn)">${c.result>0?Math.round(c.result):'—'}</div>
+          <div class="camp-metric-lbl">${c.resultType||'Kết quả'}</div>
+        </div>
+      </div>
+    </div>`
+  })
+
+  content.innerHTML = html
+
+  document.getElementById('search-inp').addEventListener('input', e => {
+    searchQ = e.target.value
+    renderCampaigns()
+  })
+}
+
+function renderReport() {
+  const content = document.getElementById('content')
+  if (!allCamps.length) { showEmpty('📊','Chưa có dữ liệu',''); return }
+
+  const spNames = Object.keys(cpaMap)
+  if (!spNames.length) { content.innerHTML = `<div class="empty"><div class="empty-icon">⚙️</div><div class="empty-title">Chưa có CPA sản phẩm</div><div class="empty-sub">Admin cần thiết lập ở tab Tính Lãi Lỗ</div></div>`; return }
+
+  const fmt = n => n>0 ? Math.round(n).toLocaleString('vi-VN')+'₫' : '—'
+  const fmtR = n => n>0 ? parseFloat(n).toFixed(2)+'x' : '—'
+
+  // Tổng hợp
+  let html = ''
+  let totalSpend = 0, totalRev = 0, totalResult = 0
+
+  spNames.forEach(sp => {
+    const matched = allCamps.filter(c => c.name?.toUpperCase().includes(sp.toUpperCase()))
+    if (!matched.length) return
+    const spend   = matched.reduce((s,c) => s+(c.spend||0), 0)
+    const revenue = matched.reduce((s,c) => s+(c.revenue||0), 0)
+    const result  = matched.reduce((s,c) => s+(c.result||0), 0)
+    const cpaMax  = cpaMap[sp]
+    const cpaAct  = result > 0 ? spend / result : 0
+    const roas    = spend > 0 ? revenue / spend : 0
+    const profit  = revenue - spend
+    const ok      = cpaAct > 0 && cpaMax > 0 ? cpaAct <= cpaMax : null
+
+    totalSpend  += spend; totalRev += revenue; totalResult += result
+
+    const badge = ok === null ? '' : ok
+      ? '<span class="tag tag-ok">🟢 Tốt</span>'
+      : '<span class="tag tag-err">🔴 Vượt CPA</span>'
+
+    html += `
+    <div class="report-card">
+      <div class="report-head">
+        <div class="report-title">📦 ${sp}</div>
+        ${badge}
+      </div>
+      <div class="report-body">
+        <div><div class="report-metric-label">Chi tiêu</div><div class="report-metric-val">${fmt(spend)}</div></div>
+        <div><div class="report-metric-label">Doanh thu</div><div class="report-metric-val" style="color:var(--grn)">${fmt(revenue)}</div></div>
+        <div><div class="report-metric-label">Lượt mua</div><div class="report-metric-val" style="color:var(--blue)">${result>0?Math.round(result):'—'}</div></div>
+        <div><div class="report-metric-label">CPA / Max</div><div class="report-metric-val" style="color:${ok===false?'var(--red)':ok?'var(--grn)':'var(--ylw)'}">${fmt(cpaAct)} / ${fmt(cpaMax)}</div></div>
+        <div><div class="report-metric-label">ROAS</div><div class="report-metric-val" style="color:${roas>=1?'var(--grn)':'var(--red)'}">${fmtR(roas)}</div></div>
+        <div><div class="report-metric-label">${profit>0?'💰 Lãi':'🔴 Lỗ'}</div><div class="report-metric-val" style="color:${profit>0?'var(--grn)':'var(--red)';font-weight:800}">${profit>0?'+'+fmt(profit):'−'+fmt(Math.abs(profit))}</div></div>
+      </div>
+    </div>`
+  })
+
+  // Summary tổng
+  const roasTotal = totalSpend > 0 ? totalRev / totalSpend : 0
+  html = `
+  <div class="report-card" style="border-color:rgba(59,130,246,.3)">
+    <div class="report-head" style="background:rgba(59,130,246,.08)">
+      <div class="report-title">📊 Tổng hợp tất cả</div>
+    </div>
+    <div class="report-body">
+      <div><div class="report-metric-label">Tổng chi tiêu</div><div class="report-metric-val">${Math.round(totalSpend).toLocaleString('vi-VN')}₫</div></div>
+      <div><div class="report-metric-label">Tổng doanh thu</div><div class="report-metric-val" style="color:var(--grn)">${Math.round(totalRev).toLocaleString('vi-VN')}₫</div></div>
+      <div><div class="report-metric-label">Tổng lượt mua</div><div class="report-metric-val" style="color:var(--blue)">${Math.round(totalResult).toLocaleString('vi-VN')}</div></div>
+      <div><div class="report-metric-label">ROAS tổng</div><div class="report-metric-val" style="color:${roasTotal>=1?'var(--grn)':'var(--red)'}">${roasTotal>0?roasTotal.toFixed(2)+'x':'—'}</div></div>
+    </div>
+  </div>` + html
+
+  content.innerHTML = html
+}
+
+function renderCpa() {
+  const content = document.getElementById('content')
+  const entries = Object.entries(cpaMap)
+  if (!entries.length) {
+    content.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><div class="empty-title">Chưa có CPA sản phẩm</div><div class="empty-sub">Admin cần thiết lập ở tab Tính Lãi Lỗ</div></div>`
+    return
+  }
+  const fmt = n => Math.round(n).toLocaleString('vi-VN') + '₫'
+  content.innerHTML = `
+  <div class="report-card">
+    <div class="report-head"><div class="report-title">🎯 CPA tối đa theo sản phẩm</div></div>
+    ${entries.map(([name, val]) => `
+    <div class="cpa-row">
+      <div class="cpa-name">${name}</div>
+      <div class="cpa-val">${fmt(val)}</div>
+    </div>`).join('')}
+  </div>`
+}
+
+// ── HELPERS ──
+function findCpaMax(campName) {
+  if (!campName) return 0
+  for (const [k, v] of Object.entries(cpaMap)) {
+    if (campName.toUpperCase().includes(k.toUpperCase())) return v
+  }
+  return 0
+}
+
+function updateStats() {
+  const ts = allCamps.reduce((s,c) => s+(c.spend||0), 0)
+  const tr = allCamps.reduce((s,c) => s+(c.result||0), 0)
+  const tv = allCamps.reduce((s,c) => s+(c.revenue||0), 0)
+  const avgCpa = ts > 0 && tr > 0 ? ts/tr : 0
+  const avgRoas = tv > 0 && ts > 0 ? tv/ts : 0
+  const fmt = n => n>0 ? (n>=1e9?(n/1e9).toFixed(1)+'B':n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(0)+'K':Math.round(n).toString()) : '—'
+  document.getElementById('st-count').textContent = allCamps.length
+  document.getElementById('st-spend').textContent = fmt(ts)
+  document.getElementById('st-result').textContent = tr>0?Math.round(tr):'—'
+  document.getElementById('st-cpa').textContent = avgCpa>0?fmt(avgCpa):'—'
+  document.getElementById('st-roas').textContent = avgRoas>0?avgRoas.toFixed(2)+'x':'—'
+}
+
+function showLoading() {
+  document.getElementById('content').innerHTML = `<div class="empty"><div class="spinner"></div><div class="empty-title">Đang tải...</div></div>`
+}
+function showEmpty(icon, title, sub) {
+  document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-title">${title}</div><div class="empty-sub">${sub}</div></div>`
+}
+function setSyncDot(state) {
+  const d = document.getElementById('sync-dot')
+  d.className = 'sync-dot' + (state==='ok'?' live':state==='loading'?' live':'')
+  d.style.background = state==='ok'?'var(--grn)':state==='err'?'var(--red)':'var(--blue)'
+}
+function toast(msg, dur=2500) {
+  const t = document.getElementById('toast')
+  t.textContent = msg; t.classList.add('show')
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), dur)
+}
+
+// ── EVENTS ──
+document.getElementById('auth-btn').addEventListener('click', doLogin)
+document.getElementById('auth-key').addEventListener('keydown', e => { if(e.key==='Enter') doLogin() })
+document.getElementById('btn-refresh').addEventListener('click', () => loadData())
+
+document.querySelectorAll('.tabnav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tabnav-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    currentTab = btn.dataset.tab
+    renderCurrentTab()
+  })
+})
+
+// ── INIT ──
+if (checkSavedLic()) {
+  startApp()
+} else {
+  document.getElementById('auth').style.display = 'flex'
+}
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {})
+}
+</script>
+</body>
+</html>
