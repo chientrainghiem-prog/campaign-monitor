@@ -277,31 +277,45 @@ function setSaved(k,v)   { localStorage.setItem(k, JSON.stringify(v)) }
 
 // ── API CALL ──
 async function apiCall(action, body = null) {
-  try {
-    // Dùng GET params để tránh CORS preflight
+  return new Promise((resolve) => {
+    // Dùng JSONP để bypass CORS hoàn toàn
+    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2)
     const params = new URLSearchParams({
       action,
       secret: APPS_SECRET,
       key: userKey || '',
-      ...(body || {})
+      callback: cbName,
+      ...(body && typeof body === 'object' && !body.data ? body : {})
     })
-    // Với data lớn (push_campaigns) dùng POST, còn lại dùng GET
-    let res
-    if (action === 'push_campaigns' || (body && body.data && Array.isArray(body.data))) {
-      res = await fetch(APPS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action, secret: APPS_SECRET, key: userKey, ...(body||{}) }),
-        headers: { 'Content-Type': 'text/plain' }, // text/plain không trigger preflight
-        redirect: 'follow'
-      })
-    } else {
-      res = await fetch(`${APPS_URL}?${params.toString()}`, { redirect: 'follow' })
+
+    // Nếu có data array (push), encode thành string
+    if (body && body.data) {
+      params.set('data_json', JSON.stringify(body.data))
     }
-    const text = await res.text()
-    try { return JSON.parse(text) } catch(e) { return { error: 'Phản hồi không hợp lệ: ' + text.slice(0,50) } }
-  } catch(e) {
-    return { error: e.message }
-  }
+
+    window[cbName] = (data) => {
+      delete window[cbName]
+      script.remove()
+      resolve(data)
+    }
+
+    const script = document.createElement('script')
+    script.src = `${APPS_URL}?${params.toString()}`
+    script.onerror = () => {
+      delete window[cbName]
+      script.remove()
+      resolve({ error: 'Lỗi kết nối' })
+    }
+    // Timeout 15s
+    const timer = setTimeout(() => {
+      delete window[cbName]
+      script.remove()
+      resolve({ error: 'Timeout' })
+    }, 15000)
+
+    script.onload = () => clearTimeout(timer)
+    document.head.appendChild(script)
+  })
 }
 
 // ── AUTH ──
