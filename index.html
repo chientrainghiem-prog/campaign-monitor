@@ -260,7 +260,7 @@ body{
 <div class="toast" id="toast"></div>
 
 <script>
-const APPS_URL    = 'https://script.google.com/macros/s/AKfycbxQtQtjIydolYEtDKc45M8wiGIS_9uDqTihvvwQE4uPAklB6bV2e5JQP9tJk-qEuWau/exec'
+const APPS_URL    = 'https://campaign-monitor.chientrainghiem.workers.dev'
 const APPS_SECRET = 'chidu_vn_2026'
 const LIC_KEY     = 'chidu_pwa_lic'
 
@@ -294,11 +294,9 @@ async function apiCall(action, body = null) {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }
     })
     const text = await res.text()
-    console.log('[PWA] response:', text.slice(0, 100))
     try { return JSON.parse(text) }
     catch(e) { return { error: 'Parse error: ' + text.slice(0, 50) } }
   } catch(e) {
-    console.error('[PWA] fetch error:', e.message)
     return { error: e.message }
   }
 }
