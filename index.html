@@ -278,20 +278,24 @@ function setSaved(k,v)   { localStorage.setItem(k, JSON.stringify(v)) }
 // ── API CALL ──
 async function apiCall(action, body = null) {
   return new Promise((resolve) => {
-    // Dùng JSONP để bypass CORS hoàn toàn
     const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2)
-    const params = new URLSearchParams({
-      action,
-      secret: APPS_SECRET,
-      key: userKey || '',
-      callback: cbName,
-      ...(body && typeof body === 'object' && !body.data ? body : {})
-    })
 
-    // Nếu có data array (push), encode thành string
-    if (body && body.data) {
-      params.set('data_json', JSON.stringify(body.data))
+    // Build URL thủ công - không dùng URLSearchParams để tránh encoding issues
+    let url = APPS_URL
+    url += '?action='    + encodeURIComponent(action)
+    url += '&secret='   + encodeURIComponent(APPS_SECRET)
+    url += '&key='      + encodeURIComponent(userKey || '')
+    url += '&callback=' + cbName
+
+    // Thêm các params phụ nếu có
+    if (body && typeof body === 'object') {
+      Object.entries(body).forEach(([k, v]) => {
+        if (k !== 'data') url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(v)
+      })
+      if (body.data) url += '&data_json=' + encodeURIComponent(JSON.stringify(body.data))
     }
+
+    console.log('[PWA] JSONP:', action, url.slice(0, 150))
 
     window[cbName] = (data) => {
       delete window[cbName]
@@ -301,25 +305,25 @@ async function apiCall(action, body = null) {
     }
 
     const script = document.createElement('script')
-    const fullUrl = `${APPS_URL}?${params.toString()}`
-    console.log('[PWA] JSONP url:', fullUrl.slice(0, 120))
-    script.src = fullUrl
-    script.onerror = (err) => {
-      console.error('[PWA] script.onerror:', err)
+    script.src = url
+    script.onerror = () => {
+      console.error('[PWA] onerror for action:', action)
       delete window[cbName]
       script.remove()
-      resolve({ error: 'Script load failed - kiểm tra Apps Script deployment' })
+      clearTimeout(timer)
+      resolve({ error: 'Script load failed' })
     }
-    // Timeout 15s
+
     const timer = setTimeout(() => {
+      console.error('[PWA] timeout for action:', action)
       delete window[cbName]
-      script.remove()
-      resolve({ error: 'Timeout' })
+      if (script.parentNode) script.remove()
+      resolve({ error: 'Timeout 15s' })
     }, 15000)
 
-    script.onload = () => clearTimeout(timer)
     document.head.appendChild(script)
   })
+}
 }
 
 // ── AUTH ──
