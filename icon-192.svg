@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#1a2438"/>
+  <rect x="20" y="100" width="30" height="72" rx="6" fill="#3b82f6"/>
+  <rect x="60" y="70" width="30" height="102" rx="6" fill="#8b5cf6"/>
+  <rect x="100" y="50" width="30" height="122" rx="6" fill="#00d4a0"/>
+  <rect x="140" y="30" width="30" height="142" rx="6" fill="#f59e0b"/>
+  <text x="96" y="28" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#e2e8f0">CPA</text>
+</svg>
